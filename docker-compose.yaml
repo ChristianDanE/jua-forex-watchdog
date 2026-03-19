@@ -1,0 +1,39 @@
+services:
+  # Building 1: Your Data Vault
+  postgres_db:
+    image: postgres:15
+    container_name: jua_database
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: forex_data
+    ports:
+      - "5455:5432"
+    volumes:
+      - fresh_jua_data:/var/lib/postgresql/data
+
+  # Building 2: The Airflow Robot
+  airflow:
+    image: apache/airflow:2.8.1
+    container_name: jua_airflow
+    ports:
+      - "8080:8080"
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./:/opt/airflow/scripts
+    command: bash -c "pip install pandas sqlalchemy psycopg2-binary && airflow standalone"
+
+
+# Building 3: The Jua Analytics Engine
+  watchdog-app:
+    build: .
+    container_name: jua_analytics_engine
+    depends_on:
+      - postgres_db
+    environment:
+      - PYTHONUNBUFFERED=1
+
+volumes:
+  fresh_jua_data:

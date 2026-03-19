@@ -1,0 +1,1 @@
+print("Boom. i just built my own docker from blank")
